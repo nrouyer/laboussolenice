@@ -1,0 +1,28 @@
+name,description,query,id,parentId,isFolder
+La Boussole Nice,,,0,,true
+😱 Découverte des données,,"LOAD CSV WITH HEADERS FROM ""file:///accidents-corporels-de-la-circulation-millesime.tsv"" AS row FIELDTERMINATOR ""\t""
+RETURN row LIMIT 10",1,0,false
+❗Contraintes,,"CREATE CONSTRAINT IF NOT EXISTS FOR (a:Accident) REQUIRE (a.accidentId) IS NODE KEY;
+CREATE CONSTRAINT IF NOT EXISTS FOR (m:Manoeuvre) REQUIRE (m.manoeuvreId) IS NODE KEY;",2,0,false
+🐎 Chargement des Accidents,,"LOAD CSV WITH HEADERS FROM ""file:///accidents-corporels-de-la-circulation-millesime.tsv"" AS row FIELDTERMINATOR ""\t""
+CALL {
+  WITH row
+  WITH row, [k in keys(row) | [apoc.text.camelCase(k), row[k]]] AS newPropPairs
+  WITH row, apoc.map.fromPairs(newPropPairs) AS mapProps
+  MERGE (a:Accident {accidentId: row.`Identifiant de l'accident`})
+    ON CREATE SET a += mapProps
+    ON MATCH SET a += mapProps
+} IN TRANSACTIONS OF 100 rows",3,0,false
+🐎 Chargement Manoeuvres,,"MATCH (a:Accident)
+UNWIND split(a.manœuvre, "","") AS manoeuvre
+WITH DISTINCT manoeuvre
+MERGE (m:Manoeuvre {manoeuvreId: manoeuvre})",4,0,false
+🐎 Chargement des accidents bis,,"LOAD CSV WITH HEADERS FROM ""file:///accidents-corporels-de-la-circulation-millesime.xlsx.tsv"" AS row FIELDTERMINATOR ""\t""
+CALL {
+  WITH row
+  WITH row, [k in keys(row) | [apoc.text.camelCase(k), row[k]]] AS newPropPairs
+  WITH row, apoc.map.fromPairs(newPropPairs) AS mapProps
+  MERGE (a:Accident {accidentId: row.`Identifiant de l'accident`})
+    ON CREATE SET a += mapProps
+    ON MATCH SET a += mapProps
+} IN TRANSACTIONS OF 100 rows",5,0,false
