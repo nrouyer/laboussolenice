@@ -1,0 +1,160 @@
+{
+  "title": "La Boussole Nice",
+  "version": "2.4",
+  "settings": {
+    "pagenumber": 0,
+    "editable": true,
+    "fullscreenEnabled": false,
+    "parameters": {
+      "neodash_datedebut": "2012-02-01",
+      "neodash_datedebut_display": "2012-02-01",
+      "neodash_datefin": "2012-02-28",
+      "neodash_datefin_display": "2012-02-28"
+    },
+    "theme": "light"
+  },
+  "pages": [
+    {
+      "title": "Carte des Accidents",
+      "reports": [
+        {
+          "id": "6dba0070-70db-4a7f-b961-55a09def18e9",
+          "title": "Accidents à Nice sur la période",
+          "query": "MATCH (a:Accident)\nWHERE date($neodash_datedebut) <= date(a.dateHeure) <= date($neodash_datefin)\nRETURN a\n\n",
+          "width": 15,
+          "height": 7,
+          "x": 6,
+          "y": 0,
+          "type": "map",
+          "selection": {
+            "Accident": "accidentId"
+          },
+          "settings": {
+            "nodeColorScheme": "set1"
+          },
+          "schema": [
+            [
+              "Accident",
+              "catégorieDUsager",
+              "annéeDeNaissance",
+              "gravité",
+              "nomOfficielCommune",
+              "nomOfficielDépartement",
+              "sexe",
+              "codeCommune",
+              "pointDeChoc",
+              "largeurDeLaChaussée",
+              "jour",
+              "intersection",
+              "largeurTerrePleinCentral",
+              "heureMinute",
+              "plan",
+              "catégorieVéhicule",
+              "voie",
+              "surface",
+              "profil",
+              "identifiantDeLAccident",
+              "codePostal",
+              "collision",
+              "codeOfficielDépartement",
+              "nomOfficielEpci",
+              "codeOfficielRégion",
+              "identifiantVéhicule",
+              "année",
+              "motifTrajet",
+              "codeInsee",
+              "accidentId",
+              "nomOfficielCommuneArrondissementMunicipal",
+              "conditionsAtmosphériques",
+              "yearGeoref",
+              "obstacleMobileHeurté",
+              "commune",
+              "env1",
+              "geoPoint",
+              "codeOfficielCommune",
+              "catégorieRoute",
+              "existenceÉquipementDeSécurité",
+              "place",
+              "département",
+              "dateHeure",
+              "nombreDeVoies",
+              "dateEtHeure",
+              "localisation",
+              "coordonnées",
+              "utilisationÉquipementDeSécurité",
+              "lumière",
+              "nomOfficielRégion",
+              "codeOfficielEpci",
+              "circulation",
+              "adresse",
+              "actionPiéton",
+              "numéro",
+              "manœuvre",
+              "mois",
+              "piétonSeulOuNon",
+              "localisationDuPiéton",
+              "situation",
+              "voieRéservée",
+              "obstacleFixeHeurté",
+              "sens",
+              "nombreDOccupants"
+            ]
+          ]
+        },
+        {
+          "id": "c2d22e2d-a965-4da8-8137-cae81128b573",
+          "title": "Date Début",
+          "query": "MATCH (a:Accident)\nRETURN DISTINCT date(a.dateHeure) AS dateDebut\nORDER BY dateDebut ASC LIMIT 500\n\n",
+          "width": 6,
+          "height": 2,
+          "x": 0,
+          "y": 0,
+          "type": "select",
+          "selection": {},
+          "settings": {
+            "type": "Custom Query",
+            "entityType": "dateDebut",
+            "parameterName": "neodash_datedebut"
+          },
+          "schema": []
+        },
+        {
+          "id": "fb45dce8-346e-4503-9639-cd7a2e81a964",
+          "title": "Date Fin",
+          "query": "MATCH (a:Accident)\nRETURN DISTINCT date(a.dateHeure) AS dateFin\nORDER BY dateFin ASC LIMIT 500",
+          "width": 6,
+          "height": 2,
+          "x": 0,
+          "y": 2,
+          "type": "select",
+          "selection": {},
+          "settings": {
+            "type": "Custom Query",
+            "entityType": "dateFin",
+            "parameterName": "neodash_datefin"
+          },
+          "schema": []
+        }
+      ]
+    },
+    {
+      "title": "New page",
+      "reports": []
+    }
+  ],
+  "parameters": {},
+  "extensions": {
+    "active": true,
+    "activeReducers": [],
+    "advanced-charts": {
+      "active": true
+    },
+    "styling": {
+      "active": true
+    },
+    "actions": {
+      "active": true
+    }
+  },
+  "uuid": "d2c05ea0-d04a-4538-8469-f86a0496b4d9"
+}
