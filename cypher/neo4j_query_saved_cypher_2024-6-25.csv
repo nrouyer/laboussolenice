@@ -1,0 +1,55 @@
+name,description,query,id,parentId,isFolder
+La Boussole Nice,,,0,,true
+😱 Découverte des données,,"LOAD CSV WITH HEADERS FROM ""file:///accidents-corporels-de-la-circulation-millesime.tsv"" AS row FIELDTERMINATOR ""\t""
+RETURN row LIMIT 10",1,0,false
+❗Contraintes,,"CREATE CONSTRAINT IF NOT EXISTS FOR (a:Accident) REQUIRE (a.accidentId) IS NODE KEY;
+CREATE CONSTRAINT IF NOT EXISTS FOR (m:Manoeuvre) REQUIRE (m.manoeuvreId) IS NODE KEY;
+CREATE CONSTRAINT IF NOT EXISTS FOR (motif:Motif) REQUIRE (motif.motifId) IS NODE KEY;
+CREATE CONSTRAINT IF NOT EXISTS FOR (u:Usager) REQUIRE (u.usagerId) IS NODE KEY;",2,0,false
+🐎 Chargement Accidents,,"LOAD CSV WITH HEADERS FROM ""file:///accidents-corporels-de-la-circulation-millesime.xlsx.tsv"" AS row FIELDTERMINATOR ""\t""
+CALL {
+  WITH row
+  WITH row, [k in keys(row) | [apoc.text.camelCase(k), row[k]]] AS newPropPairs
+  WITH row, apoc.map.fromPairs(newPropPairs) AS mapProps
+  MERGE (a:Accident {accidentId: row.`Identifiant de l'accident`})
+    ON CREATE SET a += mapProps
+    ON MATCH SET a += mapProps
+} IN TRANSACTIONS OF 100 rows",3,0,false
+🐎 Chargement Manoeuvres,,"MATCH (a:Accident)
+UNWIND split(a.manœuvre, "","") AS manoeuvre
+WITH manoeuvre
+WITH distinct trim(manoeuvre) AS manoeuvre
+MERGE (m:Manoeuvre {manoeuvreId: manoeuvre})",4,0,false
+🐎 Chargement Motifs,,"MATCH (n:Accident) 
+UNWIND split(n.motifTrajet, "","") AS motif
+WITH trim(motif) AS motif
+WITH DISTINCT motif
+MERGE (m:Motif {motifId: motif})",5,0,false
+📍Création geoPoints,,"MATCH (a:Accident)
+WHERE a.coordonnées is not null
+CALL {
+  WITH a
+  WITH a, toFloat(trim(split(a.coordonnées, "","")[0])) AS latitude, toFloat(trim(split(a.coordonnées, "","")[1])) AS longitude
+  WITH a, point({latitude: latitude, longitude: longitude}) AS geoPoint
+  SET a.geoPoint = geoPoint
+} IN TRANSACTIONS OF 100 rows;",6,0,false
+📍Index geoPoint,,CREATE POINT INDEX accident_geopoint_index FOR (a:Accident) ON (a.geoPoint);,7,0,false
+🕜 Format date et heure,,"MATCH (a:Accident) 
+SET a.dateHeure = datetime(a.dateEtHeure);",8,0,false
+🕜 Index dateHeure,,CREATE INDEX IF NOT EXISTS FOR (a:Accident) ON (a.dateHeure);,9,0,false
+🐎 Chargement Usagers,,"MATCH (a:Accident)
+CALL {
+  WITH a
+  WITH a, split(a.catégorieDUsager, "","") AS listeUsagers, split(a.annéeDeNaissance, "","") AS listeAnneeNaissance, split(a.gravité, "","") AS listeGravite, split(a.sexe, "","") AS listeSexe
+  WITH a, listeUsagers, listeAnneeNaissance, listeGravite, listeSexe, size(listeUsagers) AS nbUsagers
+  FOREACH (i IN range(0, nbUsagers - 1) | 
+    MERGE (u:Usager {usagerId: a.accidentId + '_' + i})
+      ON CREATE SET u.catégorieDUsager = listeUsagers[i], u.annéeDeNaissance = listeAnneeNaissance[i], u.gravité = listeGravite[i], u.sexe = listeSexe[i]
+      ON MATCH SET u.catégorieDUsager = listeUsagers[i], u.annéeDeNaissance = listeAnneeNaissance[i], u.gravité = listeGravite[i], u.sexe = listeSexe[i]
+    MERGE (a)-[:IMPLIQUE]->(u)   
+  )
+} IN TRANSACTIONS OF 50 rows",10,0,false
+🚶Indexes Usager,,"CREATE INDEX IF NOT EXISTS FOR (u:Usager) ON (u.catégorieDUsager);
+CREATE INDEX IF NOT EXISTS FOR (u:Usager) ON (u.annéeDeNaissance);
+CREATE INDEX IF NOT EXISTS FOR (u:Usager) ON (u.gravité);
+CREATE INDEX IF NOT EXISTS FOR (u:Usager) ON (u.sexe);",11,0,false
